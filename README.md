@@ -1,4 +1,4 @@
-# BTCUni Smart Contract
+# BTCUni Frontend
 
 ## Overview
 BTCUni is a smart contract for an on-chain course platform.  
