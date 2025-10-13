@@ -52,7 +52,7 @@ npm install @turnkey/sdk-server @stacks/transactions dotenv @noble/secp256k1
 ```
 
 ## Create .env.local
-
+```env
 TURNKEY_BASE_URL=https://api.turnkey.com
 TURNKEY_API_PRIVATE_KEY=your_turnkey_private_key
 TURNKEY_API_PUBLIC_KEY=your_turnkey_public_key
@@ -60,12 +60,15 @@ TURNKEY_ORGANIZATION_ID=your_turnkey_org_id
 TURNKEY_SIGNER_PUBLIC_KEY=your_stacks_signer_public_key
 STACKS_RECIPIENT_ADDRESS=ST3J2GVMMM2R07ZFBJDWTYEYAR8FZH5WKDTFJ9AHA
 STACKS_NETWORK=testnet
-
+```
 ## Load environment variables in code
+```typescript
 import * as dotenv from "dotenv";
 import * as path from "path";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
+
+```
 
 ## How Turnkey Transactions Work
 
@@ -88,7 +91,7 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 ## Constructing a Stacks Transaction
 
 - Example: STX token transfer
-
+```typescript
 import {
   makeUnsignedSTXTokenTransfer,
   TransactionSigner,
@@ -111,9 +114,10 @@ const constructStacksTx = async (pubKey: string) => {
   const signer = new TransactionSigner(transaction);
   return { stacksTransaction: transaction, stacksTxSigner: signer };
 };
-
+```
 ## Signing with Turnkey
 
+```typescript
 - Generate the pre-sign hash and sign via Turnkey:
 import { sigHashPreSign, createMessageSignature } from "@stacks/transactions";
 import { Turnkey as TurnkeyServerSDK } from "@turnkey/sdk-server";
@@ -151,8 +155,10 @@ const signStacksTx = async () => {
 
   return stacksTransaction;
 };
-
+```
 ## Broadcasting the Transaction
+
+```typescript
 import { broadcastTransaction } from "@stacks/transactions";
 
 const handleBroadcastTx = async () => {
@@ -162,10 +168,12 @@ const handleBroadcastTx = async () => {
 };
 
 (async () => { await handleBroadcastTx(); })();
-
+```
 ## Converting Turnkey Public Keys to Stacks Addresses
 
 - Turnkey may return uncompressed secp256k1 keys. Convert them to compressed format to derive a Stacks address:
+
+```typescript 
 import * as secp from "@noble/secp256k1";
 import { publicKeyToAddress } from "@stacks/transactions";
 
@@ -182,7 +190,7 @@ const testnetAddress = publicKeyToAddress(compressedHex, "testnet");
 console.log("Compressed Public Key:", compressedHex);
 console.log("Stacks Mainnet Address:", mainnetAddress);
 console.log("Stacks Testnet Address:", testnetAddress);
-
+```
 ## Workflow:
 
 - Create wallet in Turnkey → receive uncompressed key
@@ -194,6 +202,8 @@ console.log("Stacks Testnet Address:", testnetAddress);
  - Use compressed key for building/signing transactions
 
 ## Example: Contract Call Transaction
+
+```typescript
 import { makeUnsignedContractCall, uintCV } from "@stacks/transactions";
 
 const tx = await makeUnsignedContractCall({
@@ -206,7 +216,7 @@ const tx = await makeUnsignedContractCall({
   fee: 300n,
   network: "testnet",
 });
-
+```
 - Signing and broadcasting flow is identical to STX transfers.
 
 
