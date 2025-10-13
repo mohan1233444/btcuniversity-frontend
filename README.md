@@ -10,7 +10,7 @@ BTCUni is a smart contract for an on-chain course platform.
 
 ## Key Terms
 - **Owner/Admin**: The person who controls the platform.  
-- **Course Price**: Default is `10 STX` per course.  
+- **Course Price**: Default is `10 Usd` in sBTC per course.  
 
 ---
 
