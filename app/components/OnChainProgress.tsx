@@ -13,27 +13,28 @@ export default function OnChainProgress() {
           Join a community of Bitcoin learners and showcase your achievements.
         </p>
 
-        <div className="mt-8 flex flex-col md:flex-row justify-center gap-6">
-          <motion.a
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            href="https://discord.com"
-            target="_blank"
-            className="px-10 py-4 bg-blue-600 text-white font-bold rounded-2xl text-lg transition-colors duration-300 hover:bg-blue-700"
-          >
-            Join Discord
-          </motion.a>
+        <div className="mt-8 flex justify-center gap-4">
+  <motion.a
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    href="https://discord.com"
+    target="_blank"
+    className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-sm transition-colors duration-300 hover:bg-blue-700"
+  >
+    Join Discord
+  </motion.a>
 
-          <motion.a
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            href="https://twitter.com"
-            target="_blank"
-            className="px-10 py-4 bg-blue-400 text-white font-bold rounded-2xl text-lg transition-colors duration-300 hover:bg-blue-500"
-          >
-            Follow on X
-          </motion.a>
-        </div>
+  <motion.a
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    href="https://twitter.com"
+    target="_blank"
+    className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-sm transition-colors duration-300 hover:bg-blue-700"
+  >
+    Follow on X
+  </motion.a>
+</div>
+
       </div>
     </section>
   );
