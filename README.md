@@ -242,7 +242,7 @@ const tx = await makeUnsignedContractCall({
   contractName: "counter",
   functionName: "increment_with_value",
   functionArgs: [uintCV(42)],
-  publicKey: compressedHex,
+  publicKey: compressedhex or 03d8debd0a028ceed8012d32c4d34eee5697c6716a3082284caf2bd227597f596d /pubkey or publickey(turnkey wallet.account?)
   nonce: 1n,
   fee: 300n,
   network: "testnet",
