@@ -2,48 +2,66 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { CheckCircle, Circle } from "lucide-react";
+import { useTurnkey } from "@turnkey/react-wallet-kit";
+import { useRouter } from "next/navigation";
 
 interface Step {
   title: string;
   description: string;
   xp: number;
   completed: boolean;
+  action?: () => void;
 }
 
 export default function LearningPath() {
+  const { wallets, handleLogin } = useTurnkey();
+  const router = useRouter();
+
   const [steps, setSteps] = React.useState<Step[]>([
     {
       title: "Create Wallet",
       description: "Your first step into Bitcoin",
       xp: 100,
       completed: false,
+      action: () => handleLogin(),
     },
     {
-      title: "Earn with BoostX",
-      description: "Get rewarded for learning",
+      title: "Join Whitelist",
+      description: "Get whitelisted to access courses",
       xp: 100,
       completed: false,
+      action: () => router.push("/dashboard"),
     },
     {
-      title: "Claim BNS Name",
-      description: "Your on-chain identity",
+      title: "Enroll in Course",
+      description: "Start learning and earning",
       xp: 100,
       completed: false,
+      action: () => router.push("/dashboard"),
     },
     {
       title: "Mint Certificate",
       description: "Proof of your achievement",
       xp: 100,
       completed: false,
+      action: () => router.push("/dashboard"),
     },
   ]);
 
-  const toggleStep = (index: number) => {
+  // Update wallet creation step
+  React.useEffect(() => {
     setSteps((prev) =>
       prev.map((step, i) =>
-        i === index ? { ...step, completed: !step.completed } : step
+        i === 0 ? { ...step, completed: wallets.length > 0 } : step
       )
     );
+  }, [wallets]);
+
+  const handleStepClick = (index: number) => {
+    const step = steps[index];
+    if (step.action) {
+      step.action();
+    }
   };
 
   const totalXP = steps.reduce((acc, s) => acc + s.xp, 0);
@@ -86,7 +104,7 @@ export default function LearningPath() {
               key={index}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => toggleStep(index)}
+              onClick={() => handleStepClick(index)}
               className={`flex w-80 md:w-96 items-center p-6 rounded-3xl border shadow-2xl cursor-pointer transition-all duration-300 ${
                 step.completed
                   ? "bg-green-50 border-green-300 shadow-green-200"

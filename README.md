@@ -1,253 +1,173 @@
-# BTCUni Frontend
+# BTC University Frontend
 
-# Turnkey + Stacks Transactions Guide
+A decentralized learning platform built on Stacks (Bitcoin L2) using Turnkey for wallet management and transaction signing.
 
-This guide explains how to **build, sign, and broadcast Stacks blockchain transactions** using the **Turnkey SDK** for secure signing.  
-It covers **STX token transfers**, **smart contract calls**, and **public key handling** for Stacks.
+## Features
 
----
+- **Embedded Wallet**: Turnkey-powered wallet creation and management
+- **Stacks Contract Integration**: Interact with BTC University smart contracts
+  - Whitelist enrollment (requires 10 USD in sBTC)
+  - Course enrollment with sBTC payment
+  - NFT certificate minting
+- **On-Chain Verification**: All credentials stored as NFTs on Stacks blockchain
+- **Beautiful UI**: Modern, responsive design with Framer Motion animations
 
-## Table of Contents
+## Tech Stack
 
-1. [Introduction](#introduction)
-2. [Requirements](#requirements)
-3. [Setup](#setup)
-4. [How Turnkey Transactions Work](#how-turnkey-transactions-work)
-5. [Constructing a Stacks Transaction](#constructing-a-stacks-transaction)
-6. [Signing with Turnkey](#signing-with-turnkey)
-7. [Broadcasting the Transaction](#broadcasting-the-transaction)
-8. [Converting Turnkey Public Keys to Stacks Addresses](#converting-turnkey-public-keys-to-stacks-addresses)
-9. [Example: Contract Call Transaction](#example-contract-call-transaction)
-10. [Tips and Troubleshooting](#tips-and-troubleshooting)
-11. [References](#references)
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Styling**: Tailwind CSS 4
+- **Wallet**: Turnkey React Wallet Kit
+- **Blockchain**: Stacks.js, Stacks Testnet
+- **Animation**: Framer Motion
 
----
+## Smart Contracts
 
-## Introduction
+### Main Contract
 
-This project demonstrates:
+**Address**: `ST39YX57WQXM1CCHA2RD177N4RA5FEQJKM3F22317.btcuni`
 
-- Secure transaction signing with **Turnkey SDK**
-- Constructing **STX token transfer** transactions
-- Constructing **contract call** transactions
-- Handling **public key conversion** for Stacks compatibility
+Functions:
 
----
+- `enroll-whitelist`: Self-enroll if you hold 10+ USD in sBTC
+- `enroll-course (uint)`: Enroll in a course by ID
+- `complete-course (uint, principal)`: Mark course complete (instructor/owner only)
 
-## Requirements
+### NFT Contract
 
-- Node.js v18+
-- npm or yarn
-- A funded **Stacks testnet account**
-- Turnkey account with an active API key
+**Address**: `ST39YX57WQXM1CCHA2RD177N4RA5FEQJKM3F22317.btcuniNft`
 
----
+Functions:
+
+- `mint (principal)`: Mint certificate NFT (owner only)
 
 ## Setup
 
-1. **Install dependencies**
+### 1. Install Dependencies
 
 ```bash
-npm install @turnkey/sdk-server @stacks/transactions dotenv @noble/secp256k1
+npm install
 ```
 
-## Create .env.local
+### 2. Configure Environment Variables
+
+Create a `.env.local` file based on `.env.local.example`:
+
 ```env
 TURNKEY_BASE_URL=https://api.turnkey.com
-TURNKEY_API_PRIVATE_KEY=your_turnkey_private_key
-TURNKEY_API_PUBLIC_KEY=your_turnkey_public_key
-TURNKEY_ORGANIZATION_ID=your_turnkey_org_id
-TURNKEY_SIGNER_PUBLIC_KEY=your_stacks_signer_public_key
-STACKS_RECIPIENT_ADDRESS=ST3J2GVMMM2R07ZFBJDWTYEYAR8FZH5WKDTFJ9AHA
-STACKS_NETWORK=testnet
+TURNKEY_API_PRIVATE_KEY=your_api_private_key
+TURNKEY_API_PUBLIC_KEY=your_api_public_key
+TURNKEY_ORGANIZATION_ID=your_organization_id
 ```
 
-## 📦 Example Turnkey Wallet Response
+Get your Turnkey credentials from [Turnkey Dashboard](https://app.turnkey.com).
 
--- When creating a wallet or signer using Turnkey, you may get JSON like this:
--- turnkey compressd wallet
-```json
-{
-  "walletAccountId": "91a5d0a6-e3a9-4169-acdf-d1d4479b359a",
-  "organizationId": "b0064a69-40b1-4a2c-9b6c-c4152af4cc3a",
-  "walletId": "10381e4e-f7c1-5c1a-803c-ea7c57c45afe",
-  "curve": "CURVE_SECP256K1",
-  "pathFormat": "PATH_FORMAT_BIP32",
-  "path": "m/44'/5757'/0'/0/0",
-  "addressFormat": "ADDRESS_FORMAT_COMPRESSED",
-  "address": "03d8debd0a028ceed8012d32c4d34eee5697c6716a3082284caf2bd227597f596d",
-  "createdAt": { "seconds": "1760072589", "nanos": "0" },
-  "updatedAt": { "seconds": "1760072589", "nanos": "0" },
-  "publicKey": "03d8debd0a028ceed8012d32c4d34eee5697c6716a3082284caf2bd227597f596d",
-  "walletDetails": {
-    "walletId": "10381e4e-f7c1-5c1a-803c-ea7c57c45afe",
-    "walletName": "My Custom Ethereum Wallet",
-    "createdAt": { "seconds": "1760072589", "nanos": "0" },
-    "updatedAt": { "seconds": "1760072615", "nanos": "0" },
-    "exported": true,
-    "imported": false
-  },
-  "source": "embedded"
-}
-```
-- The above publicKey or address acts as the principal for all Stacks transactions.
+### 3. Run Development Server
 
-## Load environment variables in code
-```typescript
-import * as dotenv from "dotenv";
-import * as path from "path";
-
-dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
-
+```bash
+npm run dev
 ```
 
-## How Turnkey Transactions Work
+Open [http://localhost:3000](http://localhost:3000).
 
-- Turnkey manages signing securely:
+## How It Works
 
-- Construct unsigned Stacks transaction
+### Transaction Signing Flow
 
-- Generate a pre-signature hash of the transaction
+The app uses Turnkey's "Sign Raw Payloads" API to sign Stacks transactions:
 
-- Send the hash to Turnkey for signing
+1. **Build Unsigned Transaction**: Use `@stacks/transactions` to construct a contract call
+2. **Extract Signing Hash**: Get the `sigHash` from `TransactionSigner`
+3. **Sign with Turnkey**: Call Turnkey API with `HASH_FUNCTION_NO_OP`
+4. **Inject Signature**: Convert Turnkey's ECDSA signature to RSV format
+5. **Broadcast**: Send signed transaction to Stacks testnet
 
-- Turnkey returns the signature
+See `app/lib/stacks-utils.ts` for implementation details.
 
-- Inject the signature into the transaction
+### API Routes
 
-- Broadcast to the Stacks network
+- `/api/contract/enroll-whitelist` - Join whitelist
+- `/api/contract/enroll-course` - Enroll in course
+- `/api/contract/complete-course` - Mark course complete
+- `/api/contract/mint-nft` - Mint certificate NFT
+- `/api/contract/check-whitelist` - Check whitelist status
+- `/api/withdraw` - Transfer STX tokens
 
-- Turnkey keeps your private key secure; you never handle it directly.
+## Architecture
 
-## Constructing a Stacks Transaction
-
-- Example: STX token transfer
-```typescript
-import {
-  makeUnsignedSTXTokenTransfer,
-  TransactionSigner,
-} from "@stacks/transactions";
-
-const constructStacksTx = async (pubKey: string) => {
-  const recipient = process.env.STACKS_RECIPIENT_ADDRESS!;
-  const nonce = 0n;
-  const fee = 180n;
-
-  const transaction = await makeUnsignedSTXTokenTransfer({
-    recipient,
-    amount: 1_000_000n, // 0.01 STX
-    publicKey: pubKey,
-    nonce,
-    fee,
-    network: process.env.STACKS_NETWORK!,
-  });
-
-  const signer = new TransactionSigner(transaction);
-  return { stacksTransaction: transaction, stacksTxSigner: signer };
-};
 ```
-## Signing with Turnkey
+app/
+├── api/
+│   ├── contract/           # Contract interaction endpoints
+│   └── withdraw/           # STX transfer endpoint
+├── components/
+│   ├── course-enrollment.tsx   # Course UI
+│   ├── nft-certificate.tsx     # Certificate minting
+│   └── ...
+├── lib/
+│   └── stacks-utils.ts    # Stacks/Turnkey integration
+├── dashboard/
+│   └── page.tsx           # Main dashboard
+└── page.tsx               # Landing page
+```
+
+## Courses
+
+1. **Start with Bitcoin** - Learn Bitcoin basics
+2. **Easy Bitcoin & Stacks** - Understanding Stacks L2
+3. **Bitcoin Made Simple** - Buy, store, use Bitcoin
+4. **Intro to Stacks** - Building apps on Bitcoin
+5. **From Zero to Bitcoin Hero** - Complete beginner guide
+
+## Development Notes
+
+### Network Configuration
+
+- **Testnet**: All contracts deployed on Stacks Testnet
+- **API**: Using Hiro's public testnet API (`https://api.testnet.hiro.so`)
+
+### Wallet Address Derivation
+
+Stacks addresses are derived from secp256k1 public keys using compressed format:
 
 ```typescript
-- Generate the pre-sign hash and sign via Turnkey:
-import { sigHashPreSign, createMessageSignature } from "@stacks/transactions";
-import { Turnkey as TurnkeyServerSDK } from "@turnkey/sdk-server";
-
-const client = new TurnkeyServerSDK({
-  apiBaseUrl: process.env.TURNKEY_BASE_URL!,
-  apiPrivateKey: process.env.TURNKEY_API_PRIVATE_KEY!,
-  apiPublicKey: process.env.TURNKEY_API_PUBLIC_KEY!,
-  defaultOrganizationId: process.env.TURNKEY_ORGANIZATION_ID!,
-});
-
-const generatePreSignSigHash = (tx, signer) =>
-  sigHashPreSign(
-    signer.sigHash,
-    tx.auth.authType,
-    tx.auth.spendingCondition.fee,
-    tx.auth.spendingCondition.nonce
-  );
-
-const signStacksTx = async () => {
-  const stacksPublicKey = process.env.TURNKEY_SIGNER_PUBLIC_KEY!;
-  const { stacksTransaction, stacksTxSigner } = await constructStacksTx(stacksPublicKey);
-  const preSignSigHash = generatePreSignSigHash(stacksTransaction, stacksTxSigner);
-
-  const payload = `0x${preSignSigHash}`;
-  const signature = await client.apiClient().signRawPayload({
-    payload,
-    signWith: stacksPublicKey,
-    encoding: "PAYLOAD_ENCODING_HEXADECIMAL",
-    hashFunction: "HASH_FUNCTION_NO_OP",
-  });
-
-  const nextSig = `${signature!.v}${signature!.r.padStart(64, "0")}${signature!.s.padStart(64, "0")}`;
-  stacksTransaction.auth.spendingCondition.signature = createMessageSignature(nextSig);
-
-  return stacksTransaction;
-};
-```
-## Broadcasting the Transaction
-
-```typescript
-import { broadcastTransaction } from "@stacks/transactions";
-
-const handleBroadcastTx = async () => {
-  const tx = await signStacksTx();
-  const result = await broadcastTransaction({ transaction: tx!, network: process.env.STACKS_NETWORK! });
-  console.log("Broadcast Result:", result);
-};
-
-(async () => { await handleBroadcastTx(); })();
-```
-## Converting Turnkey Public Keys to Stacks Addresses
-
-- Turnkey may return uncompressed secp256k1 keys. Convert them to compressed format to derive a Stacks address:
-
-```typescript 
-import * as secp from "@noble/secp256k1";
 import { publicKeyToAddress } from "@stacks/transactions";
-
-const turnkeyResponse = { publicKey: "04a1b2c3d4e5f6a7..." };
-
-// Convert uncompressed → compressed
-const compressed = secp.Point.fromHex(turnkeyResponse.publicKey).toRawBytes(true);
-const compressedHex = Buffer.from(compressed).toString("hex");
-
-// Derive Stacks addresses
-const mainnetAddress = publicKeyToAddress(compressedHex, "mainnet");
-const testnetAddress = publicKeyToAddress(compressedHex, "testnet");
-
-console.log("Compressed Public Key:", compressedHex);
-console.log("Stacks Mainnet Address:", mainnetAddress);
-console.log("Stacks Testnet Address:", testnetAddress);
+const address = publicKeyToAddress(pubKey, "testnet");
 ```
-## Workflow:
 
-- Create wallet in Turnkey → receive uncompressed key
+### Testing Contracts
 
-- Convert to compressed using the snippet above
+Use the [Stacks Explorer](https://explorer.hiro.so/?chain=testnet) to view transactions and contract state.
 
-- Derive Stacks address for funding/verification
+Get testnet STX and sBTC from:
 
- - Use compressed key for building/signing transactions
+- STX Faucet: https://explorer.hiro.so/sandbox/faucet?chain=testnet
+- sBTC: Contact the team for testnet sBTC
 
-## Example: Contract Call Transaction
+## Troubleshooting
 
-```typescript
-import { makeUnsignedContractCall, uintCV } from "@stacks/transactions";
+### "Not enough sBTC" error
 
-const tx = await makeUnsignedContractCall({
-  contractAddress: "ST3J2GVMMM2R07ZFBJDWTYEYAR8FZH5WKDTFJ9AHA",
-  contractName: "counter",
-  functionName: "increment_with_value",
-  functionArgs: [uintCV(42)],
-  publicKey: compressedhex or 03d8debd0a028ceed8012d32c4d34eee5697c6716a3082284caf2bd227597f596d /pubkey or publickey(turnkey wallet.account?)
-  nonce: 1n,
-  fee: 300n,
-  network: "testnet",
-});
-```
-- Signing and broadcasting flow is identical to STX transfers.
+- Ensure you have at least 10 USD worth of sBTC
+- Check balance on Stacks Explorer
 
+### Transaction fails
 
+- Check nonce (auto-fetched from Hiro API)
+- Verify contract addresses
+- Check Turnkey API credentials
+
+### Signature errors
+
+- Ensure using `HASH_FUNCTION_NO_OP` with Turnkey
+- Verify public key format (compressed)
+
+## References
+
+- [Turnkey Stacks Docs](https://docs.turnkey.com/solutions/stacks)
+- [Stacks.js Documentation](https://stacks.js.org)
+- [Hiro Platform Docs](https://docs.hiro.so)
+- [Turnkey Example Repo](https://github.com/tkhq/sdk/tree/main/examples/with-stacks)
+
+## License
+
+MIT

@@ -4,13 +4,13 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import LearningPath from "./components/learningpath";
 import OnChainProgress from "./components/OnChainProgress";
+import CoursesOverview from "./components/courses-overview";
 
 function HomePage(): React.JSX.Element {
   const { handleLogin } = useTurnkey();
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-yellow-100 via-white to-orange-50 text-center relative overflow-hidden">
-
       {/* Navbar */}
       <nav className="flex items-center justify-between px-8 py-5 bg-white/80 backdrop-blur-md border-b border-yellow-300 sticky top-0 z-20">
         <div className="flex items-center space-x-4">
@@ -23,7 +23,9 @@ function HomePage(): React.JSX.Element {
             <h1 className="text-xl font-extrabold text-gray-900 tracking-wide">
               Bitcoin University
             </h1>
-            <p className="text-xs text-gray-500 font-medium">Powered by Stacks</p>
+            <p className="text-xs text-gray-500 font-medium">
+              Powered by Stacks
+            </p>
           </div>
         </div>
       </nav>
@@ -41,7 +43,8 @@ function HomePage(): React.JSX.Element {
           </h1>
 
           <p className="text-lg md:text-xl text-gray-700 leading-relaxed">
-            Get Paid to Learn. Set up your wallet, earn rewards, and unlock your first on-chain certificate.
+            Get Paid to Learn. Set up your wallet, earn rewards, and unlock your
+            first on-chain certificate.
           </p>
 
           <div className="border-t border-yellow-200 my-6"></div>
@@ -63,9 +66,12 @@ function HomePage(): React.JSX.Element {
         </motion.div>
       </div>
 
+      {/* Courses Overview Section */}
+      <CoursesOverview />
+
       {/* Learning Path Section */}
       <LearningPath />
-      <OnChainProgress/>
+      <OnChainProgress />
 
       {/* Background Gradient Highlights */}
       <motion.div

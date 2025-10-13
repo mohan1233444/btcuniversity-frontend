@@ -1,57 +1,52 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 interface BalanceProps {
   stxwallet: string;
-  balance?: bigint; 
-  loading?: boolean; 
+  stxBalance: bigint;
+  sbtcBalance: bigint;
+  loading: boolean;
 }
 
-export default function Balance({ stxwallet, balance: parentBalance, loading: parentLoading }: BalanceProps) {
-  const [balance, setBalance] = useState<bigint>(0n); // micro-STX
-  const [loading, setLoading] = useState<boolean>(false);
+export default function Balance({
+  stxwallet,
+  stxBalance,
+  sbtcBalance,
+  loading,
+}: BalanceProps) {
+  // Convert micro-STX to STX (6 decimals)
+  const balanceInStx = Number(stxBalance) / 1_000_000;
 
-  useEffect(() => {
-    if (parentBalance !== undefined) {
-      setBalance(parentBalance);
-      setLoading(parentLoading || false);
-      return;
-    }
-
-    if (!stxwallet) return;
-
-    const fetchBalance = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `https://api.hiro.so/extended/v1/address/${stxwallet}/balances?unanchored=true`
-        );
-        if (!res.ok) throw new Error("Failed to fetch balance");
-        const data = await res.json();
-        setBalance(BigInt(data.stx?.balance || "0"));
-      } catch (error) {
-        console.error("Error fetching STX balance:", error);
-        setBalance(0n);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBalance();
-  }, [stxwallet, parentBalance, parentLoading]);
-
-  // Convert micro-STX to STX with 6 decimals
-  const displayBalance = `${(balance / 1_000_000n).toString()}.${(balance % 1_000_000n)
-    .toString()
-    .padStart(6, "0")}`;
+  // Convert sBTC to display format (8 decimals)
+  const balanceInSbtc = Number(sbtcBalance) / 100_000_000;
 
   return (
     <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-      <h3 className="text-xl font-semibold text-gray-700 mb-4">Balance</h3>
-      <p className="text-3xl font-bold text-gray-900">
-        {loading ? "Loading..." : `${displayBalance} STX`}
-      </p>
+      <h3 className="text-xl font-semibold text-gray-800 mb-4">
+        Wallet Balances
+      </h3>
+      {loading ? (
+        <p className="text-gray-600">Loading balances...</p>
+      ) : (
+        <div className="space-y-4">
+          {/* STX Balance */}
+          <div className="flex justify-between items-center">
+            <span className="text-gray-700 font-medium">STX:</span>
+            <span className="text-2xl font-bold text-blue-600">
+              {balanceInStx.toFixed(6)} STX
+            </span>
+          </div>
+
+          {/* sBTC Balance */}
+          <div className="flex justify-between items-center pt-3 border-t border-gray-200">
+            <span className="text-gray-700 font-medium">sBTC:</span>
+            <span className="text-2xl font-bold text-orange-600">
+              {balanceInSbtc.toFixed(8)} sBTC
+            </span>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
