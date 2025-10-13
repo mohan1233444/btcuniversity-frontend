@@ -61,6 +61,37 @@ TURNKEY_SIGNER_PUBLIC_KEY=your_stacks_signer_public_key
 STACKS_RECIPIENT_ADDRESS=ST3J2GVMMM2R07ZFBJDWTYEYAR8FZH5WKDTFJ9AHA
 STACKS_NETWORK=testnet
 ```
+
+## 📦 Example Turnkey Wallet Response
+
+-- When creating a wallet or signer using Turnkey, you may get JSON like this:
+-- turnkey compressd wallet
+```json
+{
+  "walletAccountId": "91a5d0a6-e3a9-4169-acdf-d1d4479b359a",
+  "organizationId": "b0064a69-40b1-4a2c-9b6c-c4152af4cc3a",
+  "walletId": "10381e4e-f7c1-5c1a-803c-ea7c57c45afe",
+  "curve": "CURVE_SECP256K1",
+  "pathFormat": "PATH_FORMAT_BIP32",
+  "path": "m/44'/5757'/0'/0/0",
+  "addressFormat": "ADDRESS_FORMAT_COMPRESSED",
+  "address": "03d8debd0a028ceed8012d32c4d34eee5697c6716a3082284caf2bd227597f596d",
+  "createdAt": { "seconds": "1760072589", "nanos": "0" },
+  "updatedAt": { "seconds": "1760072589", "nanos": "0" },
+  "publicKey": "03d8debd0a028ceed8012d32c4d34eee5697c6716a3082284caf2bd227597f596d",
+  "walletDetails": {
+    "walletId": "10381e4e-f7c1-5c1a-803c-ea7c57c45afe",
+    "walletName": "My Custom Ethereum Wallet",
+    "createdAt": { "seconds": "1760072589", "nanos": "0" },
+    "updatedAt": { "seconds": "1760072615", "nanos": "0" },
+    "exported": true,
+    "imported": false
+  },
+  "source": "embedded"
+}
+```
+- The above publicKey or address acts as the principal for all Stacks transactions.
+
 ## Load environment variables in code
 ```typescript
 import * as dotenv from "dotenv";
