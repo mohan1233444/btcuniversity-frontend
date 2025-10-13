@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* ─────────────
+   Root Theme
+────────────── */
+:root {
+  --background: rgb(58, 16, 130);
+  --foreground: #171717;
+}
+
+/* Tailwind theme variables */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ─────────────
+   Dark Mode
+────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1cb1b645;
+    --foreground: #446759;
+  }
+}
+
+/* ─────────────
+   Global Styles
+────────────── */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
