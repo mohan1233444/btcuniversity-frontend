@@ -1,50 +1,60 @@
-# Syndicate Lab Solana Wallet Dashboard
+# BTCUni Smart Contract
 
-A simple Next.js dashboard integrating **Turnkey Embedded Wallets** for Solana. This project allows users to log in, create Solana wallets, and manage their wallets via the Turnkey React SDK.
-
----
-
-
-<img src="screenshots/0.png" alt="login" width="400"/>
-
-
-<img src="screenshots/1.png" alt="dashboard" width="400"/>
-<img src="screenshots/2.png" alt="login" width="400"/>
-<img src="screenshots/4.png" alt="login" width="400"/>
-<img src="screenshots/5.png" alt="login" width="400"/>
-
-
-
-## Features
-
-- Turnkey authentication (email + auth proxy)
-- Solana-only wallet creation
-- Wallet list and refresh
-- Logout functionality
-- Fully styled with Tailwind CSS
+## Overview
+BTCUni is a smart contract for an on-chain course platform.  
+- **Students** can enroll in courses.  
+- **Instructors** can mark course completions.  
+- **Admin** controls course creation and manages who is allowed to join.  
 
 ---
 
-## Setup Instructions
+## Key Terms
+- **Owner/Admin**: The person who controls the platform.  
+- **Course Price**: Default is `10 STX` per course.  
 
-### 1. Fork the repository
+---
 
-1. Click **Fork** in the top-right corner of this repository.
-2. Clone your fork locally:
+## Errors You Might See
+| Code  | Meaning |
+|-------|---------|
+| `100` | Only the owner can do this |
+| `101` | Course not found |
+| `102` | You are not allowed to join |
+| `103` | You are not enrolled in this course |
+| `104` | Already enrolled or already allowed |
+| `107` | Not enough STX to pay |
+| `108` | Unauthorized action |
 
-```bash
-git clone https://github.com/<your-username>/<repo-name>.git
-cd <repo-name>
-npm install
-# or
-yarn install
-cp .env.example .env
+---
 
+## How Data is Stored
+- **course-id** → keeps track of the latest course number  
+- **whitelisted-beta** → tracks which students are allowed to join  
+- **courses** → stores info about each course (name, details, price, instructor, max students)  
+- **student-courses** → tracks which courses a student is enrolled in and their progress  
 
-NEXT_PUBLIC_TURNKEY_CLIENT_ID=your_client_id
-NEXT_PUBLIC_TURNKEY_AUTH_PROXY_URL=http://localhost:3000
+---
 
-npm run dev
-# or
-yarn dev
+## Functions You Can Use
 
+### Whitelist Management
+- **enroll-whitelist()** → Student requests to join the whitelist  
+- **add-whitelist(student)** → Admin adds a student  
+- **remove-whitelist(student)** → Admin removes a student  
+- **is-whitelisted-beta(student)** → Check if a student is allowed  
+
+### Course Management
+- **add-course(name, details, price, max-students)** → Admin adds a new course  
+- **get-course-details(id)** → See info about a course  
+- **get-course-count()** → See how many courses exist  
+
+### Enrollment
+- **enroll-course(course-id)** → Student enrolls and pays for a course  
+- **complete-course(course-id, student)** → Instructor or admin marks course as completed  
+
+---
+
+## Notes
+- Only students on the whitelist can enroll.  
+- Payments are in STX and go to the admin.  
+- Only the instructor or admin can mark course completions.  
