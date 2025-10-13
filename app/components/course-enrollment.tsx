@@ -396,7 +396,7 @@ export default function CourseEnrollment({
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}
                   >
-                    {isEnrolling ? "Enrolling..." : "Enroll Now"}
+                    {isEnrolling ? "Enrolling..." : "Enroll Now (0.01 sBTC)"}
                   </button>
                 )}
               </motion.div>

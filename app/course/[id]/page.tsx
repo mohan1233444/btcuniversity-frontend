@@ -594,7 +594,7 @@ export default function CoursePage() {
                     disabled={enrolling || !isWhitelisted}
                     className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors"
                   >
-                    {enrolling ? "Enrolling..." : "Enroll Now"}
+                    {enrolling ? "Enrolling..." : "Enroll Now (0.01 sBTC)"}
                   </button>
                   {!isWhitelisted && (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">

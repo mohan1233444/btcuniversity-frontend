@@ -12,11 +12,15 @@ import {
   type SingleSigSpendingCondition,
   type StacksTransactionWire,
 } from "@stacks/transactions";
+import { STACKS_TESTNET, STACKS_MAINNET } from "@stacks/network";
 import type { TurnkeySDKClientBase } from "@turnkey/core";
 
-export const STACKS_NETWORK =
+const NETWORK_ENV =
   (process.env.NEXT_PUBLIC_STACKS_NETWORK as "testnet" | "mainnet") ||
   "testnet";
+
+export const STACKS_NETWORK =
+  NETWORK_ENV === "mainnet" ? STACKS_MAINNET : STACKS_TESTNET;
 
 // Contract addresses from environment variables
 export const CONTRACTS = {

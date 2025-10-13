@@ -17,8 +17,14 @@ import {
   Wallet,
   TrendingUp,
   Award,
+  CheckCircle,
+  Lock,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  signAndBroadcastContractCall,
+  CONTRACTS,
+} from "@/app/lib/stacks-client-utils";
 
 // Import components
 import Header from "../components/header";
@@ -78,7 +84,7 @@ const COURSES = [
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { authState, wallets } = useTurnkey();
+  const { authState, wallets, httpClient } = useTurnkey();
   const [stxAddress, setStxAddress] = useState("");
   const [stxPubKey, setStxPubKey] = useState("");
   const [stxBalance, setStxBalance] = useState<bigint>(0n);
@@ -89,6 +95,11 @@ export default function DashboardPage() {
   );
   const [isWhitelisted, setIsWhitelisted] = useState(false);
   const [showWalletActions, setShowWalletActions] = useState(false);
+  const [enrollingWhitelist, setEnrollingWhitelist] = useState(false);
+  const [toast, setToast] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -188,6 +199,60 @@ export default function DashboardPage() {
     checkStatus();
   }, [stxAddress]);
 
+  const handleEnrollWhitelist = async () => {
+    if (!stxPubKey || !stxAddress || !httpClient) {
+      setToast({ type: "error", message: "Wallet not connected" });
+      return;
+    }
+
+    setEnrollingWhitelist(true);
+    try {
+      console.log("=== WHITELIST ENROLLMENT ===");
+      console.log("Sender Address:", stxAddress);
+      console.log("Public Key:", stxPubKey);
+
+      const txId = await signAndBroadcastContractCall(
+        {
+          contractAddress: CONTRACTS.BTCUNI_MAIN,
+          contractName: "btcuni",
+          functionName: "enroll-whitelist",
+          functionArgs: [],
+          senderAddress: stxAddress,
+          senderPubKey: stxPubKey,
+        },
+        httpClient
+      );
+
+      console.log(
+        "Transaction broadcast! Check on explorer:",
+        `https://explorer.hiro.so/txid/${txId}?chain=testnet`
+      );
+
+      setToast({
+        type: "success",
+        message:
+          "Whitelist enrollment successful! Transaction: " +
+          txId.slice(0, 16) +
+          "...",
+      });
+      setIsWhitelisted(true);
+    } catch (err) {
+      console.error("Whitelist enrollment error:", err);
+      const message =
+        err instanceof Error ? err.message : "Whitelist enrollment failed";
+      setToast({ type: "error", message });
+    } finally {
+      setEnrollingWhitelist(false);
+    }
+  };
+
+  // Auto-hide toast
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 5000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
   if (authState !== "authenticated") return null;
 
   const balanceInStx = Number(stxBalance) / 1_000_000;
@@ -196,6 +261,19 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Toast */}
+      {toast && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg text-white font-semibold max-w-md ${
+            toast.type === "success" ? "bg-green-600" : "bg-red-600"
+          }`}
+        >
+          {toast.message}
+        </motion.div>
+      )}
+
       {/* Header */}
       <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -278,50 +356,114 @@ export default function DashboardPage() {
               </motion.div>
             )}
 
-            {/* Learning Progress */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
+            {/* Whitelist Status */}
+            {!isWhitelisted ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl border-2 border-orange-300 p-8"
+              >
+                <div className="flex items-start gap-4 mb-6">
                   <div className="bg-orange-100 p-3 rounded-xl">
-                    <GraduationCap className="w-6 h-6 text-orange-600" />
+                    <Lock className="w-8 h-8 text-orange-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                      Join the Whitelist
+                    </h3>
+                    <p className="text-gray-700 mb-4">
+                      You need to hold at least 10 USD worth of sBTC to enroll
+                      in courses. Join the whitelist to unlock all course
+                      content and start your Bitcoin learning journey.
+                    </p>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span>Access to all courses</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span>Earn NFT certificates</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span>Track your progress on-chain</span>
+                    </div>
+                    <button
+                      onClick={handleEnrollWhitelist}
+                      disabled={enrollingWhitelist}
+                      className="px-8 py-3 bg-gradient-to-r from-orange-500 to-yellow-400 text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {enrollingWhitelist ? "Enrolling..." : "Join Whitelist"}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-green-300 p-6"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 p-3 rounded-xl">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">
-                      Your Learning Journey
+                    <h3 className="text-xl font-bold text-green-900">
+                      Whitelisted! 🎉
                     </h3>
-                    <p className="text-sm text-gray-600">
-                      {enrolledCourses.size} of {COURSES.length} courses
-                      enrolled
+                    <p className="text-sm text-green-700">
+                      You can now enroll in courses and earn certificates
                     </p>
                   </div>
                 </div>
-                {!isWhitelisted && (
-                  <span className="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg text-sm font-semibold">
-                    Whitelist Required
-                  </span>
-                )}
-              </div>
+              </motion.div>
+            )}
 
-              {/* Progress Bar */}
-              <div className="mb-6">
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
-                  <span>Progress</span>
-                  <span>
-                    {Math.round((enrolledCourses.size / COURSES.length) * 100)}%
-                  </span>
+            {/* Learning Progress */}
+            {isWhitelisted && (
+              <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-orange-100 p-3 rounded-xl">
+                      <GraduationCap className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">
+                        Your Learning Journey
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {enrolledCourses.size} of {COURSES.length} courses
+                        enrolled
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-orange-500 to-yellow-400 h-2 rounded-full transition-all duration-500"
-                    style={{
-                      width: `${
+
+                {/* Progress Bar */}
+                <div className="mb-6">
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Progress</span>
+                    <span>
+                      {Math.round(
                         (enrolledCourses.size / COURSES.length) * 100
-                      }%`,
-                    }}
-                  />
+                      )}
+                      %
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-orange-500 to-yellow-400 h-2 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${
+                          (enrolledCourses.size / COURSES.length) * 100
+                        }%`,
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Courses Grid */}
             <div>
