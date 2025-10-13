@@ -49,7 +49,7 @@ This project demonstrates:
 
 ```bash
 npm install @turnkey/sdk-server @stacks/transactions dotenv @noble/secp256k1
-'''
+```
 
 ## Create .env.local
 
@@ -208,4 +208,5 @@ const tx = await makeUnsignedContractCall({
 });
 
 - Signing and broadcasting flow is identical to STX transfers.
+
 
