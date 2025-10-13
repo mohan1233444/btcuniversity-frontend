@@ -89,7 +89,14 @@ export async function POST(req: NextRequest) {
       ) {
         const courseList = parsedValue.value;
         if (Array.isArray(courseList)) {
-          enrolledIds = courseList.map((id: bigint | number) => Number(id));
+          enrolledIds = courseList.map((item: any) => {
+            // Each item is an object with type and value properties
+            if (typeof item === "object" && "value" in item) {
+              return Number(item.value);
+            }
+            // Fallback for direct number/bigint values
+            return Number(item);
+          });
           console.log("Enrolled course IDs:", enrolledIds);
         }
       }

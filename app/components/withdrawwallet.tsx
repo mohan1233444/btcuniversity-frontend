@@ -2,24 +2,31 @@
 
 import React, { useState, MouseEvent, useEffect } from "react";
 import { validateStacksAddress } from "@stacks/transactions";
+import { ArrowUpRight } from "lucide-react";
 
 interface WithdrawSTXProps {
-  stxPubKey: string; // Public key for signing
-  balance: bigint;   // balance in micro-STX
+  stxPubKey: string;
+  balance: bigint;
 }
 
 export default function WithdrawSTX({ stxPubKey, balance }: WithdrawSTXProps) {
   const [withdrawAddress, setWithdrawAddress] = useState("");
   const [amount, setAmount] = useState<number>(0);
   const [withdrawing, setWithdrawing] = useState(false);
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [toast, setToast] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const handleWithdrawStacks = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setToast(null);
 
     if (!withdrawAddress || amount <= 0) {
-      return setToast({ type: "error", message: "Enter a valid recipient and amount" });
+      return setToast({
+        type: "error",
+        message: "Enter valid recipient and amount",
+      });
     }
 
     if (!validateStacksAddress(withdrawAddress)) {
@@ -44,66 +51,93 @@ export default function WithdrawSTX({ stxPubKey, balance }: WithdrawSTXProps) {
         }),
       });
 
-      const data: { error?: string } = await res.json(); 
+      const data: { error?: string } = await res.json();
 
       if (!res.ok) throw new Error(data.error || "Transaction failed");
 
-      setToast({ type: "success", message: "Transaction successful!" });
+      setToast({ type: "success", message: "Transaction sent!" });
       setWithdrawAddress("");
       setAmount(0);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Transaction failed"; 
+      const message = err instanceof Error ? err.message : "Transaction failed";
       setToast({ type: "error", message });
     } finally {
       setWithdrawing(false);
     }
   };
 
-  // auto-hide toast after 3 seconds
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(null), 3000);
     return () => clearTimeout(timer);
   }, [toast]);
 
-  return (
-    <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 relative">
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">Withdraw STX</h3>
+  const balanceInSTX = Number(balance) / 1_000_000;
 
-      {/* for toast */}
+  return (
+    <div className="bg-white rounded-xl p-4 border border-gray-200">
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">Send STX</h3>
+
       {toast && (
         <div
-          className={`absolute top-4 right-4 px-4 py-2 rounded shadow-md text-white font-semibold transition-all
-            ${toast.type === "success" ? "bg-green-600" : "bg-red-600"}`}
+          className={`mb-3 px-3 py-2 rounded-lg text-xs font-semibold ${
+            toast.type === "success"
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
         >
           {toast.message}
         </div>
       )}
 
-      <div className="space-y-4">
-        <input
-          type="text"
-          value={withdrawAddress}
-          onChange={(e) => setWithdrawAddress(e.target.value)}
-          placeholder="Enter recipient STX address"
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
-        <input
-          type="number"
-          step="0.000001"
-          value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
-          placeholder="Enter amount in STX"
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
+      <div className="space-y-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">
+            Recipient
+          </label>
+          <input
+            type="text"
+            value={withdrawAddress}
+            onChange={(e) => setWithdrawAddress(e.target.value)}
+            placeholder="STX address"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">
+            Amount
+          </label>
+          <div className="relative">
+            <input
+              type="number"
+              step="0.000001"
+              value={amount}
+              onChange={(e) => setAmount(Number(e.target.value))}
+              placeholder="0.00"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none"
+            />
+            <button
+              onClick={() => setAmount(balanceInSTX)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-semibold hover:bg-orange-200"
+            >
+              Max
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Available: {balanceInSTX.toFixed(6)} STX
+          </p>
+        </div>
+
         <button
           onClick={handleWithdrawStacks}
           disabled={withdrawing}
-          className="w-full px-6 py-3 rounded-xl text-white font-semibold bg-purple-600 hover:bg-purple-700 shadow-md transition-colors duration-200 disabled:opacity-50"
+          className="w-full px-4 py-2 bg-gradient-to-r from-orange-500 to-yellow-400 hover:shadow-lg disabled:bg-gray-300 disabled:from-gray-300 disabled:to-gray-300 text-white text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
         >
-          {withdrawing ? "Withdrawing..." : "Withdraw STX"}
+          <ArrowUpRight className="w-4 h-4" />
+          {withdrawing ? "Sending..." : "Send"}
         </button>
       </div>
-    </section>
+    </div>
   );
 }

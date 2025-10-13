@@ -2,6 +2,7 @@
 
 import React, { MouseEvent } from "react";
 import { useTurnkey, type Wallet } from "@turnkey/react-wallet-kit";
+import { Download } from "lucide-react";
 
 interface ExportWalletProps {
   wallets: Wallet[];
@@ -16,14 +17,20 @@ export default function ExportWallet({ wallets }: ExportWalletProps) {
   };
 
   return (
-    <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Export Wallet</h2>
+    <div className="bg-white rounded-xl p-4 border border-gray-200">
+      <h3 className="text-sm font-semibold text-gray-700 mb-2">
+        Backup Wallet
+      </h3>
+      <p className="text-xs text-gray-600 mb-3">
+        Export wallet for safekeeping
+      </p>
       <button
         onClick={handleExport}
-        className="w-full sm:w-auto px-6 py-3 rounded-xl text-white font-semibold bg-indigo-600 hover:bg-indigo-700 shadow-md transition-colors duration-200"
+        className="w-full px-4 py-2 bg-gradient-to-r from-orange-500 to-yellow-400 hover:shadow-lg text-white text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
       >
+        <Download className="w-4 h-4" />
         Export
       </button>
-    </section>
+    </div>
   );
 }
