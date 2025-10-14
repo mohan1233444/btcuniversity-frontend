@@ -1,173 +1,136 @@
-# BTC University Frontend
+# BTC University
 
-A decentralized learning platform built on Stacks (Bitcoin L2) using Turnkey for wallet management and transaction signing.
+A decentralized learning platform for Bitcoin education built on Stacks (Bitcoin L2) that demonstrates sBTC transactions through an embedded wallet experience. Users create non-custodial wallets via Turnkey's SDK, enroll in Bitcoin courses with sBTC payments, and receive on-chain NFT certificates upon completion.
 
-## Features
+This project was built for the Stacks Builders Challenge (October 2025) focused on embedded wallets and sBTC integration. The core innovation is seamless transaction signing using Turnkey's API with Stacks blockchain, enabling users to interact with smart contracts without managing keys manually.
 
-- **Embedded Wallet**: Turnkey-powered wallet creation and management
-- **Stacks Contract Integration**: Interact with BTC University smart contracts
-  - Whitelist enrollment (requires 10 USD in sBTC)
-  - Course enrollment with sBTC payment
-  - NFT certificate minting
-- **On-Chain Verification**: All credentials stored as NFTs on Stacks blockchain
-- **Beautiful UI**: Modern, responsive design with Framer Motion animations
+## Overview
+
+BTC University integrates Turnkey's embedded wallet SDK to enable frictionless sBTC transactions on Stacks. Users authenticate via passkeys or email, create wallets instantly, and interact with smart contracts to enroll in courses, complete modules, and mint NFT certificates. All credentials are stored on-chain, making them verifiable and portable.
+
+The platform demonstrates three core flows: (1) whitelist enrollment requiring 10 USD in sBTC, (2) course enrollment with on-chain payment, and (3) NFT certificate minting upon course completion. Transaction signing happens server-side via Turnkey's "Sign Raw Payloads" API, with signatures injected into Stacks transactions before broadcast.
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15, React 19, TypeScript
+- **Framework**: Next.js 15 (App Router), React 19, TypeScript
+- **Blockchain**: Stacks.js (`@stacks/transactions`, `@stacks/network`), Stacks Testnet
+- **Wallet SDK**: Turnkey (`@turnkey/react-wallet-kit`, `@turnkey/sdk-browser`, `@turnkey/sdk-server`)
 - **Styling**: Tailwind CSS 4
-- **Wallet**: Turnkey React Wallet Kit
-- **Blockchain**: Stacks.js, Stacks Testnet
 - **Animation**: Framer Motion
+- **Icons**: Lucide React
+- **QR Codes**: qrcode.react
 
-## Smart Contracts
+## Features
 
-### Main Contract
+- **Embedded Wallet Creation**: Non-custodial wallets via passkey or email authentication (no seed phrases)
+- **sBTC Transactions**: Pay for course enrollment with sBTC on Stacks testnet
+- **Smart Contract Integration**: Direct interaction with BTC University contracts for enrollment and verification
+- **Whitelist Gating**: Requires sBTC to access platform
+- **Course Enrollment**: Five Bitcoin education courses with on-chain enrollment records
+- **NFT Certificates**: Mint SIP-009 compliant NFTs as course completion credentials
+- **Balance Display**: Real-time STX and sBTC balance tracking
+- **Wallet Export**: QR code and key export for wallet portability
+- **Transaction Signing**: Server-side signing via Turnkey with ECDSA signature conversion
 
-**Address**: `ST39YX57WQXM1CCHA2RD177N4RA5FEQJKM3F22317.btcuni`
+## Screenshots
 
-Functions:
+![BTC University Dashboard](./images/image1.png)
 
-- `enroll-whitelist`: Self-enroll if you hold 10+ USD in sBTC
-- `enroll-course (uint)`: Enroll in a course by ID
-- `complete-course (uint, principal)`: Mark course complete (instructor/owner only)
-
-### NFT Contract
-
-**Address**: `ST39YX57WQXM1CCHA2RD177N4RA5FEQJKM3F22317.btcuniNft`
-
-Functions:
-
-- `mint (principal)`: Mint certificate NFT (owner only)
+![Course Enrollment & NFT Certificate](./images/image2.png)
 
 ## Setup
 
-### 1. Install Dependencies
+### Installation
 
 ```bash
 npm install
 ```
 
-### 2. Configure Environment Variables
+### Environment Variables
 
-Create a `.env.local` file based on `.env.local.example`:
+Copy the text from `.env.local.example`
 
-```env
-TURNKEY_BASE_URL=https://api.turnkey.com
-TURNKEY_API_PRIVATE_KEY=your_api_private_key
-TURNKEY_API_PUBLIC_KEY=your_api_public_key
-TURNKEY_ORGANIZATION_ID=your_organization_id
-```
+Create `.env.local`:
 
-Get your Turnkey credentials from [Turnkey Dashboard](https://app.turnkey.com).
+Get credentials from [Turnkey Dashboard](https://app.turnkey.com).
 
-### 3. Run Development Server
+### Development
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+App runs at `http://localhost:3000`.
 
-## How It Works
+## Clarity Smart Contracts
 
-### Transaction Signing Flow
+See other repo. [https://github.com/mohan1233444/btcuniversity-contract](https://github.com/mohan1233444/btcuniversity-contract)
 
-The app uses Turnkey's "Sign Raw Payloads" API to sign Stacks transactions:
+## Transaction Signing Flow
 
-1. **Build Unsigned Transaction**: Use `@stacks/transactions` to construct a contract call
-2. **Extract Signing Hash**: Get the `sigHash` from `TransactionSigner`
+Turnkey integration with Stacks uses raw payload signing:
+
+1. **Build Transaction**: Construct unsigned contract call with `@stacks/transactions`
+2. **Extract Hash**: Get `sigHash` from `TransactionSigner`
 3. **Sign with Turnkey**: Call Turnkey API with `HASH_FUNCTION_NO_OP`
-4. **Inject Signature**: Convert Turnkey's ECDSA signature to RSV format
-5. **Broadcast**: Send signed transaction to Stacks testnet
+4. **Convert Signature**: Transform Turnkey's ECDSA signature to RSV format
+5. **Inject & Broadcast**: Add signature to transaction and broadcast to Stacks testnet
 
-See `app/lib/stacks-utils.ts` for implementation details.
+Implementation in `app/lib/stacks-utils.ts`.
 
-### API Routes
-
-- `/api/contract/enroll-whitelist` - Join whitelist
-- `/api/contract/enroll-course` - Enroll in course
-- `/api/contract/complete-course` - Mark course complete
-- `/api/contract/mint-nft` - Mint certificate NFT
-- `/api/contract/check-whitelist` - Check whitelist status
-- `/api/withdraw` - Transfer STX tokens
-
-## Architecture
+## Project Structure
 
 ```
 app/
 ├── api/
-│   ├── contract/           # Contract interaction endpoints
-│   └── withdraw/           # STX transfer endpoint
+│   ├── contract/
+│   │   ├── enroll-whitelist/    # Whitelist enrollment endpoint
+│   │   ├── enroll-course/       # Course enrollment endpoint
+│   │   ├── complete-course/     # Mark course complete
+│   │   ├── mint-nft/            # Mint certificate
+│   │   ├── check-whitelist/     # Check enrollment status
+│   │   └── get-enrolled-ids/    # Get user enrollments
+│   └── withdraw/                 # STX transfer endpoint
 ├── components/
-│   ├── course-enrollment.tsx   # Course UI
-│   ├── nft-certificate.tsx     # Certificate minting
+│   ├── createWallet.tsx         # Turnkey wallet creation
+│   ├── displayWallet.tsx        # Wallet UI with balance
+│   ├── course-enrollment.tsx    # Course interaction
+│   ├── nft-certificate.tsx      # Certificate minting
 │   └── ...
 ├── lib/
-│   └── stacks-utils.ts    # Stacks/Turnkey integration
-├── dashboard/
-│   └── page.tsx           # Main dashboard
-└── page.tsx               # Landing page
+│   └── stacks-utils.ts          # Stacks/Turnkey integration core
+└── dashboard/
+    └── page.tsx                  # Main dashboard
 ```
 
-## Courses
+## API Endpoints
 
-1. **Start with Bitcoin** - Learn Bitcoin basics
-2. **Easy Bitcoin & Stacks** - Understanding Stacks L2
-3. **Bitcoin Made Simple** - Buy, store, use Bitcoin
-4. **Intro to Stacks** - Building apps on Bitcoin
-5. **From Zero to Bitcoin Hero** - Complete beginner guide
+- `POST /api/contract/enroll-whitelist` - Join platform whitelist
+- `POST /api/contract/enroll-course` - Enroll in course with sBTC
+- `POST /api/contract/complete-course` - Complete course (admin)
+- `POST /api/contract/mint-nft` - Mint NFT certificate
+- `GET /api/contract/check-whitelist` - Verify whitelist status
+- `GET /api/contract/get-enrolled-ids` - Get user's enrollments
+- `POST /api/withdraw` - Transfer STX tokens
 
-## Development Notes
+## Network Configuration
 
-### Network Configuration
+- **Network**: Stacks Testnet
+- **API**: Hiro Public API (`https://api.testnet.hiro.so`)
+- **Explorer**: https://explorer.hiro.so/?chain=testnet
+- **Faucet**: https://explorer.hiro.so/sandbox/faucet?chain=testnet
 
-- **Testnet**: All contracts deployed on Stacks Testnet
-- **API**: Using Hiro's public testnet API (`https://api.testnet.hiro.so`)
+## Courses Available
 
-### Wallet Address Derivation
-
-Stacks addresses are derived from secp256k1 public keys using compressed format:
-
-```typescript
-import { publicKeyToAddress } from "@stacks/transactions";
-const address = publicKeyToAddress(pubKey, "testnet");
-```
-
-### Testing Contracts
-
-Use the [Stacks Explorer](https://explorer.hiro.so/?chain=testnet) to view transactions and contract state.
-
-Get testnet STX and sBTC from:
-
-- STX Faucet: https://explorer.hiro.so/sandbox/faucet?chain=testnet
-- sBTC: Contact the team for testnet sBTC
-
-## Troubleshooting
-
-### "Not enough sBTC" error
-
-- Ensure you have at least 10 USD worth of sBTC
-- Check balance on Stacks Explorer
-
-### Transaction fails
-
-- Check nonce (auto-fetched from Hiro API)
-- Verify contract addresses
-- Check Turnkey API credentials
-
-### Signature errors
-
-- Ensure using `HASH_FUNCTION_NO_OP` with Turnkey
-- Verify public key format (compressed)
+1. **Start with Bitcoin** - Bitcoin fundamentals and concepts
+2. **Easy Bitcoin & Stacks** - Understanding Stacks as Bitcoin L2
+3. **Bitcoin Made Simple** - Practical guide to buying, storing, and using Bitcoin
+4. **Intro to Stacks** - Building decentralized applications on Bitcoin
+5. **From Zero to Bitcoin Hero** - Complete beginner's journey
 
 ## References
 
-- [Turnkey Stacks Docs](https://docs.turnkey.com/solutions/stacks)
+- [Turnkey Stacks Documentation](https://docs.turnkey.com/solutions/stacks)
+- [Turnkey Stacks Example](https://github.com/tkhq/sdk/tree/main/examples/with-stacks)
 - [Stacks.js Documentation](https://stacks.js.org)
 - [Hiro Platform Docs](https://docs.hiro.so)
-- [Turnkey Example Repo](https://github.com/tkhq/sdk/tree/main/examples/with-stacks)
-
-## License
-
-MIT
