@@ -31,10 +31,9 @@ export async function POST(req: NextRequest) {
 
     // Build the argument (principal address)
     const principalArg = principalCV(address);
-    // @ts-ignore - Buffer.toString is valid
-    const serializedPrincipal = `0x${serializeCV(principalArg).toString(
-      "hex"
-    )}`;
+    const serializedPrincipal = `0x${Buffer.from(
+      serializeCV(principalArg)
+    ).toString("hex")}`;
 
     console.log("Serialized principal:", serializedPrincipal);
 
@@ -66,12 +65,7 @@ export async function POST(req: NextRequest) {
 
     // Parse the Clarity response
     const clarityValue = hexToCV(data.result);
-    console.log(
-      "Clarity value type:",
-      clarityValue.type,
-      "Type name:",
-      ClarityType[clarityValue.type]
-    );
+    console.log("Clarity value type:", clarityValue.type);
 
     let enrolledIds: number[] = [];
 

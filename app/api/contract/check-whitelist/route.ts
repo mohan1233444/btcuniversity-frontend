@@ -22,7 +22,9 @@ export async function POST(req: NextRequest) {
 
     // Build the argument (principal address)
     const principalArg = principalCV(address);
-    const serializedArg = `0x${serializeCV(principalArg).toString("hex")}`;
+    const serializedArg = `0x${Buffer.from(serializeCV(principalArg)).toString(
+      "hex"
+    )}`;
     console.log("Serialized argument:", serializedArg);
 
     // Call read-only function to check whitelist status
@@ -66,12 +68,7 @@ export async function POST(req: NextRequest) {
     // - (ok true) if user is whitelisted
     // - (err u102) if user is NOT whitelisted
     const clarityValue = hexToCV(data.result);
-    console.log(
-      "Clarity value type:",
-      clarityValue.type,
-      "Type name:",
-      ClarityType[clarityValue.type]
-    );
+    console.log("Clarity value type:", clarityValue.type);
 
     let isWhitelisted = false;
 

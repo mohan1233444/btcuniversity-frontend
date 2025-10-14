@@ -26,8 +26,6 @@ export async function POST(req: NextRequest) {
       contractName: "btcuni",
       functionName: "complete-course",
       functionArgs: [uintCV(courseId), principalCV(studentAddress)],
-      senderAddress,
-      senderPubKey: pubKey,
     });
 
     const txId = await broadcastContractCall(transaction);

@@ -35,12 +35,12 @@ export async function POST(req: NextRequest) {
     const courseIdArg = uintCV(courseId);
     const principalArg = principalCV(address);
 
-    // @ts-ignore - Buffer.toString is valid
-    const serializedCourseId = `0x${serializeCV(courseIdArg).toString("hex")}`;
-    // @ts-ignore - Buffer.toString is valid
-    const serializedPrincipal = `0x${serializeCV(principalArg).toString(
-      "hex"
-    )}`;
+    const serializedCourseId = `0x${Buffer.from(
+      serializeCV(courseIdArg)
+    ).toString("hex")}`;
+    const serializedPrincipal = `0x${Buffer.from(
+      serializeCV(principalArg)
+    ).toString("hex")}`;
 
     console.log("Serialized course ID:", serializedCourseId);
     console.log("Serialized principal:", serializedPrincipal);
@@ -74,13 +74,7 @@ export async function POST(req: NextRequest) {
 
     // Parse the Clarity response
     const clarityValue = hexToCV(data.result);
-    const clarityTypeName = ClarityType[clarityValue.type] || "Unknown";
-    console.log(
-      "Clarity value type:",
-      clarityValue.type,
-      "Type name:",
-      clarityTypeName
-    );
+    console.log("Clarity value type:", clarityValue.type);
 
     let isEnrolled = false;
 
