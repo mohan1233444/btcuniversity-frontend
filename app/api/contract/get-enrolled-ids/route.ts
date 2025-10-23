@@ -31,29 +31,45 @@ export async function POST(req: NextRequest) {
 
     // Build the argument (principal address)
     const principalArg = principalCV(address);
-    const serializedPrincipal = `0x${Buffer.from(
-      serializeCV(principalArg)
-    ).toString("hex")}`;
+    console.log("Principal CV created:", principalArg);
 
+    // serializeCV returns hex string directly, just add 0x prefix
+    const serializedPrincipal = `0x${serializeCV(principalArg)}`;
     console.log("Serialized principal:", serializedPrincipal);
 
     // Call read-only function to get enrolled course IDs
     const apiEndpoint = `${apiUrl}/v2/contracts/call-read/${contractAddress}/${contractName}/get-enrolled-ids`;
+    const requestBody = {
+      sender: address,
+      arguments: [serializedPrincipal],
+    };
+
     console.log("Calling API:", apiEndpoint);
+    console.log("Request body:", JSON.stringify(requestBody, null, 2));
 
     const response = await fetch(apiEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sender: address,
-        arguments: [serializedPrincipal],
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     console.log("API response status:", response.status);
+    console.log(
+      "Response headers:",
+      Object.fromEntries(response.headers.entries())
+    );
 
     if (!response.ok) {
-      console.error("Hiro API error - response not ok");
+      const errorText = await response.text();
+      console.error(
+        "Hiro API error (status " + response.status + "):",
+        errorText
+      );
+      console.error("Full error details:", {
+        status: response.status,
+        statusText: response.statusText,
+        errorBody: errorText,
+      });
       return NextResponse.json({
         success: true,
         enrolledIds: [],

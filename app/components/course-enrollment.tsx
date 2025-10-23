@@ -301,8 +301,8 @@ export default function CourseEnrollment({
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
                 🔐 Join the Whitelist
               </h3>
-              <p className="text-gray-700 mb-4">
-                You need to hold at least 10 USD worth of sBTC to join
+              <p className="text-red-500 mb-4">
+                You need to hold 0.001 sBTC worth to join
               </p>
               <button
                 onClick={handleEnrollWhitelist}

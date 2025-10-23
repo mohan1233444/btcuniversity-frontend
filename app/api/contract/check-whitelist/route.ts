@@ -21,11 +21,22 @@ export async function POST(req: NextRequest) {
     }
 
     // Build the argument (principal address)
+    console.log("Raw address input:", address);
+    console.log("Address type:", typeof address);
+    console.log("Address length:", address.length);
+
     const principalArg = principalCV(address);
-    const serializedArg = `0x${Buffer.from(serializeCV(principalArg)).toString(
-      "hex"
-    )}`;
-    console.log("Serialized argument:", serializedArg);
+    console.log("Principal CV created:", principalArg);
+    console.log("Principal CV type:", principalArg.type);
+
+    const serialized = serializeCV(principalArg);
+    console.log("Serialized result:", serialized);
+    console.log("Serialized type:", typeof serialized);
+
+    // serializeCV returns hex string directly, just add 0x prefix
+    const serializedArg = `0x${serialized}`;
+    console.log("Serialized argument (hex string):", serializedArg);
+    console.log("Expected correct length:", 2 + serialized.length);
 
     // Call read-only function to check whitelist status
     const contractAddress = process.env.NEXT_PUBLIC_BTCUNI_CONTRACT_ADDRESS!;
@@ -36,22 +47,41 @@ export async function POST(req: NextRequest) {
         ? "https://api.hiro.so"
         : "https://api.testnet.hiro.so";
 
+    const apiEndpoint = `${apiUrl}/v2/contracts/call-read/${contractAddress}/${contractName}/is-whitelisted-beta`;
+    const requestBody = {
+      sender: address,
+      arguments: [serializedArg],
+    };
+
     console.log("Calling Hiro API...");
-    const response = await fetch(
-      `${apiUrl}/v2/contracts/call-read/${contractAddress}/${contractName}/is-whitelisted-beta`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sender: address,
-          arguments: [serializedArg],
-        }),
-      }
+    console.log("API Endpoint:", apiEndpoint);
+    console.log("Contract Address:", contractAddress);
+    console.log("Contract Name:", contractName);
+    console.log("Request body:", JSON.stringify(requestBody, null, 2));
+
+    const response = await fetch(apiEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
+    });
+
+    console.log("Response status:", response.status);
+    console.log(
+      "Response headers:",
+      Object.fromEntries(response.headers.entries())
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Hiro API error:", errorText);
+      console.error(
+        "Hiro API error (status " + response.status + "):",
+        errorText
+      );
+      console.error("Full error details:", {
+        status: response.status,
+        statusText: response.statusText,
+        errorBody: errorText,
+      });
       console.log("Returning false due to API error");
       // Don't throw, just return not whitelisted
       return NextResponse.json({

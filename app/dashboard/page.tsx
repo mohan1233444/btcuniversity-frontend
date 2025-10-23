@@ -371,10 +371,10 @@ export default function DashboardPage() {
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">
                       Join the Whitelist
                     </h3>
-                    <p className="text-gray-700 mb-4">
-                      You need to hold at least 10 USD worth of sBTC to enroll
-                      in courses. Join the whitelist to unlock all course
-                      content and start your Bitcoin learning journey.
+                    <p className="text-red-500 mb-4">
+                      You need to hold at least 0.001 sBTC to enroll in courses.
+                      Join the whitelist to unlock all course content and start
+                      your Bitcoin learning journey.
                     </p>
                     <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
                       <CheckCircle className="w-4 h-4 text-green-600" />

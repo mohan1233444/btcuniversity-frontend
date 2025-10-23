@@ -35,12 +35,9 @@ export async function POST(req: NextRequest) {
     const courseIdArg = uintCV(courseId);
     const principalArg = principalCV(address);
 
-    const serializedCourseId = `0x${Buffer.from(
-      serializeCV(courseIdArg)
-    ).toString("hex")}`;
-    const serializedPrincipal = `0x${Buffer.from(
-      serializeCV(principalArg)
-    ).toString("hex")}`;
+    // serializeCV returns hex string directly, just add 0x prefix
+    const serializedCourseId = `0x${serializeCV(courseIdArg)}`;
+    const serializedPrincipal = `0x${serializeCV(principalArg)}`;
 
     console.log("Serialized course ID:", serializedCourseId);
     console.log("Serialized principal:", serializedPrincipal);
